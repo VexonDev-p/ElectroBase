@@ -22,17 +22,13 @@ ELECTROBASE API
 */
 
 
-const SUPABASE_URL =
-    process.env.SUPABASE_URL;
+const SUPABASE_URL = process.env.supabase_url;
 
-const SUPABASE_SECRET_KEY =
-    process.env.SUPABASE_SECRET_KEY;
+const SUPABASE_SECRET_KEY = process.env.supabase_secret_key;
 
-const ADMIN_LOGIN =
-    process.env.ADMIN_LOGIN || "admin";
+const ADMIN_LOGIN = process.env.admin_login;
 
-const ADMIN_PASSWORD =
-    process.env.ADMIN_PASSWORD || "CHANGE_ME";
+const ADMIN_PASSWORD = process.env.admin_password;
 
 
 const USER_SESSION_TIME =
