@@ -1,40 +1,83 @@
 export const runtime = "nodejs";
 
-export default function handler(
-    request,
-    response
-){
+export default async function handler(request) {
 
-    response.status(200).json({
+    const controller =
+        new AbortController();
 
-        ok:true,
+    const timeout =
+        setTimeout(
+            () => controller.abort(),
+            10000
+        );
 
-        action:
-            request.query?.action ||
-            null,
+    try {
 
-        variables:{
-            supabase_url:
-                Boolean(
-                    process.env.supabase_url
-                ),
+        const url =
+            `${process.env.supabase_url}/rest/v1/settings?select=id&limit=1`;
 
-            supabase_secret_key:
-                Boolean(
-                    process.env.supabase_secret_key
-                ),
+        const result =
+            await fetch(
+                url,
+                {
+                    method: "GET",
 
-            admin_login:
-                Boolean(
-                    process.env.admin_login
-                ),
+                    headers: {
+                        "apikey":
+                            process.env.supabase_secret_key,
 
-            admin_password:
-                Boolean(
-                    process.env.admin_password
-                )
-        }
+                        "Content-Type":
+                            "application/json"
+                    },
 
-    });
+                    signal:
+                        controller.signal
+                }
+            );
+
+        const text =
+            await result.text();
+
+        return new Response(
+            JSON.stringify({
+                ok: result.ok,
+                status: result.status,
+                response: text
+            }),
+            {
+                status: 200,
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                }
+            }
+        );
+
+    } catch(error) {
+
+        return new Response(
+            JSON.stringify({
+                ok: false,
+                error:
+                    error.name === "AbortError"
+                    ? "SUPABASE_TIMEOUT"
+                    : error.message
+            }),
+            {
+                status: 200,
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                }
+            }
+        );
+
+    } finally {
+
+        clearTimeout(timeout);
+
+    }
 
 }
