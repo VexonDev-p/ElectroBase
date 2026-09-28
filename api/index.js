@@ -106,9 +106,6 @@ async function db(
                     "apikey":
                         SUPABASE_SECRET_KEY,
 
-                    "Authorization":
-                        `Bearer ${SUPABASE_SECRET_KEY}`,
-
                     "Content-Type":
                         "application/json",
 
