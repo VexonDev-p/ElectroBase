@@ -77,7 +77,7 @@ function response(
 
 async function db(
     table,
-    options={}
+    options = {}
 ){
 
     if(
@@ -92,76 +92,145 @@ async function db(
     }
 
 
+    const baseUrl =
+        String(SUPABASE_URL)
+            .replace(/\/+$/, "");
+
+
     const url =
-        `${SUPABASE_URL}/rest/v1/${table}`;
+        `${baseUrl}/rest/v1/${table}`;
 
 
-    const result =
-        await fetch(
-            url,
-            {
-                ...options,
+    const controller =
+        new AbortController();
 
-                headers:{
-                    "apikey":
-                        SUPABASE_SECRET_KEY,
 
-                    "Content-Type":
-                        "application/json",
-
-                    ...(options.headers || {})
-                }
-            }
+    const timeout =
+        setTimeout(
+            () => controller.abort(),
+            10000
         );
 
 
-    const text =
-        await result.text();
+    try{
+
+        const result =
+            await fetch(
+                url,
+                {
+                    ...options,
+
+                    signal:
+                        controller.signal,
+
+                    headers:{
+                        "apikey":
+                            SUPABASE_SECRET_KEY,
+
+                        "Content-Type":
+                            "application/json",
+
+                        "Accept":
+                            "application/json",
+
+                        ...(options.headers || {})
+                    }
+                }
+            );
 
 
-    let data = null;
+        const text =
+            await result.text();
 
 
-    if(text){
+        let data = null;
 
-        try{
 
-            data =
-                JSON.parse(text);
+        if(text){
 
-        }catch{
+            try{
 
-            data = text;
+                data =
+                    JSON.parse(text);
+
+            }catch{
+
+                data =
+                    text;
+
+            }
 
         }
 
-    }
+
+        if(!result.ok){
+
+            console.error(
+                "SUPABASE ERROR:",
+                {
+                    status:
+                        result.status,
+
+                    statusText:
+                        result.statusText,
+
+                    data
+                }
+            );
 
 
-    if(!result.ok){
+            throw new Error(
+                data?.message ||
+                data?.hint ||
+                `Supabase HTTP ${result.status}`
+            );
+
+        }
+
+
+        return {
+            data,
+            result
+        };
+
+
+    }catch(error){
+
+        if(
+            error?.name ===
+            "AbortError"
+        ){
+
+            console.error(
+                "SUPABASE TIMEOUT:",
+                url
+            );
+
+
+            throw new Error(
+                "Supabase не отвечает более 10 секунд."
+            );
+
+        }
+
 
         console.error(
-            "SUPABASE ERROR:",
-            data
+            "SUPABASE REQUEST ERROR:",
+            error
         );
 
 
-        throw new Error(
-            data?.message ||
-            data?.hint ||
-            "Ошибка базы данных."
+        throw error;
+
+    }finally{
+
+        clearTimeout(
+            timeout
         );
 
     }
 
-
-    return {
-        data,
-        result
-    };
-
 }
-
 
 /* =========================================================
    HELPERS
