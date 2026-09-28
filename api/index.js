@@ -1616,12 +1616,6 @@ export default async function handler(
             }
 
 
-            await log(
-                "ADMIN_LOGIN",
-                "Администратор вошёл в панель."
-            );
-
-
             return response(
                 200,
                 {
