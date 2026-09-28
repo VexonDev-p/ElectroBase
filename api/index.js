@@ -1,37 +1,40 @@
-export default async function handler(request) {
+export const runtime = "nodejs";
 
-    const url =
-        new URL(request.url);
+export default function handler(
+    request,
+    response
+){
 
-    return new Response(
-        JSON.stringify({
-            ok: true,
+    response.status(200).json({
 
-            action:
-                url.searchParams.get("action"),
+        ok:true,
 
-            variables: {
-                supabase_url:
-                    Boolean(process.env.supabase_url),
+        action:
+            request.query?.action ||
+            null,
 
-                supabase_secret_key:
-                    Boolean(process.env.supabase_secret_key),
+        variables:{
+            supabase_url:
+                Boolean(
+                    process.env.supabase_url
+                ),
 
-                admin_login:
-                    Boolean(process.env.admin_login),
+            supabase_secret_key:
+                Boolean(
+                    process.env.supabase_secret_key
+                ),
 
-                admin_password:
-                    Boolean(process.env.admin_password)
-            }
-        }),
-        {
-            status: 200,
+            admin_login:
+                Boolean(
+                    process.env.admin_login
+                ),
 
-            headers: {
-                "Content-Type":
-                    "application/json"
-            }
+            admin_password:
+                Boolean(
+                    process.env.admin_password
+                )
         }
-    );
+
+    });
 
 }
